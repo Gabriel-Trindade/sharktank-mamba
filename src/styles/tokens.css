@@ -1,0 +1,69 @@
+:root {
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 12px 32px rgb(15 23 42 / 0.06);
+  --shadow-card-dark: 0 1px 2px rgb(0 0 0 / 0.35), 0 18px 38px rgb(0 0 0 / 0.22);
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  --color-surface-raised: #ffffff;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-primary: #ee4d2d;
+  --color-primary-strong: #d84324;
+  --color-primary-soft: #fff1eb;
+  --color-on-primary: #ffffff;
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-info: #2563eb;
+  --color-info-soft: #dbeafe;
+  --color-chart-a: #ee4d2d;
+  --color-chart-b: #2563eb;
+  --color-chart-c: #16a34a;
+  --color-chart-d: #f59e0b;
+  --color-grid-line: rgb(15 23 42 / 0.035);
+  --shadow-app: var(--shadow-card);
+  --shadow-subtle: 0 1px 2px rgb(15 23 42 / 0.06);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #08080d;
+  --color-surface: #14141c;
+  --color-surface-alt: #1e1e28;
+  --color-surface-raised: #252532;
+  --color-text: #f1f5f9;
+  --color-muted: #8b8b9e;
+  --color-border: rgb(255 255 255 / 0.09);
+  --color-border-strong: rgb(255 255 255 / 0.16);
+  --color-primary: #ff5a1f;
+  --color-primary-strong: #ff7a3d;
+  --color-primary-soft: #2d0f05;
+  --color-on-primary: #ffffff;
+  --color-success: #22c55e;
+  --color-success-soft: #102318;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #241607;
+  --color-danger: #f87171;
+  --color-danger-soft: #24100b;
+  --color-info: #60a5fa;
+  --color-info-soft: #0f1d35;
+  --color-chart-a: #ff7a3d;
+  --color-chart-b: #60a5fa;
+  --color-chart-c: #22c55e;
+  --color-chart-d: #fbbf24;
+  --color-grid-line: rgb(255 255 255 / 0.04);
+  --shadow-app: var(--shadow-card-dark);
+  --shadow-subtle: 0 1px 2px rgb(0 0 0 / 0.35);
+  color-scheme: dark;
+}
