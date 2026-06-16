@@ -2,7 +2,7 @@ import type { SellerScenario } from "../domain/types";
 
 export const demoScenario: SellerScenario = {
   id: "demo-seller-recovery",
-  name: "Cenário 9: conta em queda Shopee",
+  name: "Cenário 9: Conta em queda Shopee",
   createdAt: "2026-06-13T12:00:00.000Z",
   products: [
     {
@@ -202,41 +202,48 @@ export const demoScenario: SellerScenario = {
     },
   ],
   account: {
+    // Métricas Principais (case, telas de 30 dias):
+    // Vendas R$ 9.467,73 (▼48,16%) · Sem desconto Shopee R$ 9.394,55
+    // Pedidos 85 (▼40,14%) · Cancelados 7 (▲75,00%)
     vendas30d: 9467.73,
-    vendasPeriodoAnterior: 30000,
-    vendasSemDesconto: 9966.03,
+    vendasPeriodoAnterior: 18263.37, // → queda de 48,16% vs. os 30 dias anteriores
+    vendasSemDesconto: 9394.55,
     pedidos30d: 85,
-    pedidosPeriodoAnterior: 232,
-    cancelamentos30d: 8,
-    cancelamentosPeriodoAnterior: 6,
-    visitantes: 2400,
+    pedidosPeriodoAnterior: 142, // → queda de 40,14%
+    cancelamentos30d: 7,
+    cancelamentosPeriodoAnterior: 4, // → alta de 75,00%
+    visitantes: 2300, // conversão visitante→comprador de 3,09% (funil do case)
     compradores: 71,
   },
   traffic: {
+    // Fontes de Tráfego (case): Card 99% · Lives 0% · Vídeo 0% · Afiliado 1% · Shopee Ads 70%
     vendasTotais: 9467.73,
-    vendasCardProduto: 2210.2,
+    vendasCardProduto: 9414.93,
     vendasLives: 0,
-    vendasVideoVendedor: 302.84,
-    vendasAfiliado: 360,
+    vendasVideoVendedor: 0,
+    vendasAfiliado: 52.8,
     vendasShopeeAds: 6594.69,
   },
   ads: {
-    impressoes: 142000,
-    cliques: 2840,
-    pedidosAds: 45,
-    itensVendidosAds: 53,
-    vendasAds: 6594.69,
-    investimentoAds: 410,
+    // Desempenho de Todos os Anúncios (case): Impressões 397,7 mil · Cliques 8,6 mil
+    // CTR 2,17% · Pedidos 79 · Itens 81 · Vendas R$ 8,8 mil · Investimento R$ 1,6 mil · ROAS 5,60
+    impressoes: 397700,
+    cliques: 8630,
+    pedidosAds: 79,
+    itensVendidosAds: 81,
+    vendasAds: 8800,
+    investimentoAds: 1572,
   },
   promotion: {
-    nome: "Campanha semi-joias Shopee",
+    // Promoção "Mamba Abril 5%" (case): Vendas R$ 3.285,90 · 27 un · 25 pedidos · 25 compradores
+    nome: "Mamba Abril 5%",
     tipoDesconto: "percentual",
     descontoAtualPct: 5,
     descontoMaximoPct: 12,
-    vendasPromocao: 2410.3,
-    unidadesVendidasPromocao: 22,
-    pedidosPromocao: 20,
-    compradoresPromocao: 19,
+    vendasPromocao: 3285.9,
+    unidadesVendidasPromocao: 27,
+    pedidosPromocao: 25,
+    compradoresPromocao: 25,
   },
   market: [
     {
@@ -248,7 +255,7 @@ export const demoScenario: SellerScenario = {
       unidadesMesMercado: 367000,
       precoMedioSeller: 132.5,
       unidadesMesSeller: 19,
-      fonte: "Joompulse / planilha_case_shark_tank_analise_seller_mercado.xlsx",
+      fonte: "Joompulse / Análise de categorias Shopee (produtos_shark_tank.xlsx)",
     },
     {
       categoria: "Pulseiras e Braceletes",

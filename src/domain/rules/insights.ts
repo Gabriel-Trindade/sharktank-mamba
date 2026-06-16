@@ -20,8 +20,8 @@ export const generateInsights = (
       id: "sales-drop",
       severity: "high",
       title: "Queda de vendas detectada",
-      description: "O faturamento atual está abaixo do patamar de referência registrado antes da queda — queda acumulada ao longo do período de assessoria.",
-      evidence: `Atual: ${formatCurrency(scenario.account.vendas30d)} / Referência: ${formatCurrency(scenario.account.vendasPeriodoAnterior)}.`,
+      description: "O faturamento atual está abaixo do registrado nos 30 dias anteriores — a queda se acumulou ao longo do período de assessoria.",
+      evidence: `Atual: ${formatCurrency(scenario.account.vendas30d)} / 30 dias anteriores: ${formatCurrency(scenario.account.vendasPeriodoAnterior)}.`,
     });
   }
 
@@ -141,7 +141,6 @@ export const generateInsights = (
 const generateDataConsistencyInsights = (scenario: SellerScenario): Insight[] => {
   const insights: Insight[] = [];
   const trafficSalesDiffPct = differencePct(scenario.traffic.vendasTotais, scenario.account.vendas30d);
-  const adsSalesDiffPct = differencePct(scenario.traffic.vendasShopeeAds, scenario.ads.vendasAds);
   const productsGmv = scenario.products.reduce((sum, product) => sum + product.gmv30d, 0);
   const productsGmvDiffPct = differencePct(productsGmv, scenario.account.vendas30d);
   const inconsistentProducts = scenario.products.filter((product) => {
@@ -160,13 +159,20 @@ const generateDataConsistencyInsights = (scenario: SellerScenario): Insight[] =>
     });
   }
 
-  if (scenario.traffic.vendasShopeeAds > 0 && scenario.ads.vendasAds > 0 && adsSalesDiffPct > 5) {
+  // A "contribuição de anúncios" do tráfego usa atribuição direta e tende a ser MENOR que a
+  // receita do painel de Ads (janela de atribuição mais ampla). Só sinalizamos divergência
+  // quando a contribuição direta supera a do painel — aí sim há erro nos dados informados.
+  if (
+    scenario.traffic.vendasShopeeAds > 0 &&
+    scenario.ads.vendasAds > 0 &&
+    scenario.traffic.vendasShopeeAds > scenario.ads.vendasAds * 1.05
+  ) {
     insights.push({
       id: "ads-sales-mismatch",
       severity: "medium",
       title: "Vendas Ads divergentes",
-      description: "A receita de Shopee Ads no tráfego não está alinhada com a receita informada em Ads.",
-      evidence: `${formatCurrency(scenario.traffic.vendasShopeeAds)} no tráfego contra ${formatCurrency(scenario.ads.vendasAds)} em Ads.`,
+      description: "A contribuição de Ads no tráfego superou a receita do painel de Ads — revise a atribuição informada.",
+      evidence: `${formatCurrency(scenario.traffic.vendasShopeeAds)} no tráfego contra ${formatCurrency(scenario.ads.vendasAds)} no painel de Ads.`,
     });
   }
 

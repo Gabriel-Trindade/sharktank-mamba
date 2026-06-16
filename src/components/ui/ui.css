@@ -130,8 +130,10 @@
 
 .metric-value {
   color: var(--color-text);
-  font-size: 26px;
+  font-size: 27px;
+  font-weight: 600;
   line-height: 1.05;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 

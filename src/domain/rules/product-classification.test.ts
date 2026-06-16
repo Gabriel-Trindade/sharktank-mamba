@@ -75,10 +75,23 @@ describe("product classification", () => {
     expect(classifications).toContain("nao_priorizar_cpc");
   });
 
-  it("blocks CPC priority when market gap is too high", () => {
+  it("keeps CPC priority for a high-gap champion that already proves demand", () => {
+    // Gap alto sozinho não bloqueia campeão de giro: ele já vende ao preço premium.
     const classifications = classifyProduct(products[0], {
       products,
       market: [{ categoria: "Beleza", precoMedioMercado: 20, precoMedioSeller: 80 }],
+      averageTicket: 70,
+      config,
+    });
+
+    expect(classifications).toContain("prioridade_ads");
+    expect(classifications).not.toContain("nao_priorizar_cpc");
+  });
+
+  it("blocks CPC priority when market gap is high on a low-rotation product", () => {
+    const classifications = classifyProduct(products[2], {
+      products,
+      market: [{ categoria: "Casa", precoMedioMercado: 20, precoMedioSeller: 80 }],
       averageTicket: 70,
       config,
     });
