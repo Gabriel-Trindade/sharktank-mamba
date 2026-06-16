@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Button } from "../../components/ui/Button";
 import { InsightCard } from "../../components/ui/InsightCard";
 import { MetricCard } from "../../components/ui/MetricCard";
 import { formatCurrency, formatInteger, formatPercent } from "../../domain/formatters";
@@ -9,7 +11,12 @@ type OverviewDashboardProps = {
 };
 
 export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) => {
+  const [showAllInsights, setShowAllInsights] = useState(false);
   const targetProgress = Math.min(100, Math.max(0, result.overview.targetProgressPct));
+
+  const highInsights = result.insights.filter((i) => i.severity === "high");
+  const otherCount = result.insights.length - highInsights.length;
+  const visibleInsights = showAllInsights ? result.insights : highInsights;
 
   return (
     <div className="section-stack">
@@ -58,32 +65,15 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
 
       <section className="dashboard-section">
         <div className="dashboard-section-header">
-          <h2>Visão geral da operação</h2>
-          <p>Métricas principais dos últimos 30 dias</p>
+          <h2>Visão geral</h2>
+          <p>Indicadores principais dos últimos 30 dias</p>
         </div>
         <div className="dashboard-grid">
           <MetricCard
             label="Vendas 30d"
             value={formatCurrency(result.overview.sales30d)}
-            detail={`Queda ${formatPercent(result.overview.salesDropPct)}`}
+            detail={`Queda ${formatPercent(result.overview.salesDropPct)} vs. período de referência`}
             tone={result.overview.salesDropPct > 0 ? "danger" : "success"}
-          />
-          <MetricCard
-            label="Pedidos"
-            value={formatInteger(result.overview.orders30d)}
-            detail={`Queda ${formatPercent(result.overview.ordersDropPct)}`}
-            tone={result.overview.ordersDropPct > 0 ? "warning" : "success"}
-          />
-          <MetricCard
-            label="Cancelamentos"
-            value={formatInteger(result.overview.cancellations30d)}
-            detail={`Crescimento ${formatPercent(result.overview.cancellationGrowthPct)}`}
-            tone={result.overview.cancellationGrowthPct > 0 ? "danger" : "success"}
-          />
-          <MetricCard
-            label="Ticket médio"
-            value={formatCurrency(result.overview.averageTicket)}
-            detail={`${formatInteger(result.overview.visitors)} visitantes`}
           />
           <MetricCard
             label="Compradores"
@@ -96,12 +86,6 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
             value={formatPercent(result.overview.adDependencyPct)}
             detail="Vendas Shopee Ads / total"
             tone={result.overview.adDependencyPct >= 60 ? "danger" : "info"}
-          />
-          <MetricCard
-            label="ROAS"
-            value={result.overview.roas.toFixed(2)}
-            detail={`CTR ${formatPercent(result.overview.ctr)}`}
-            tone={result.overview.roas < 4 ? "warning" : "success"}
           />
           <MetricCard
             label="TACOS usado"
@@ -118,12 +102,22 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
           <p>Diagnóstico gerado por regras com base nos dados informados</p>
         </div>
         <div className="insight-grid">
-          {result.insights.length > 0 ? (
-            result.insights.map((insight) => <InsightCard key={insight.id} insight={insight} />)
+          {visibleInsights.length > 0 ? (
+            visibleInsights.map((insight) => <InsightCard key={insight.id} insight={insight} />)
           ) : (
             <p className="muted">Nenhum gargalo crítico encontrado nos dados atuais.</p>
           )}
         </div>
+        {!showAllInsights && otherCount > 0 && (
+          <Button size="sm" variant="ghost" onClick={() => setShowAllInsights(true)}>
+            Ver {otherCount} {otherCount === 1 ? "aviso adicional" : "avisos adicionais"}
+          </Button>
+        )}
+        {showAllInsights && (
+          <Button size="sm" variant="ghost" onClick={() => setShowAllInsights(false)}>
+            Mostrar menos
+          </Button>
+        )}
       </section>
     </div>
   );

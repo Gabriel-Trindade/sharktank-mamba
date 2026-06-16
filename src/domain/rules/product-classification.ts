@@ -34,15 +34,17 @@ export const classifyProduct = (
     classifications.push("venda_por_sorte");
   }
 
-  if (isChampion && marginPct > 0 && product.adsStatus !== "ativo" && hasStock && !hasHighMarketGap && !isLuckySale) {
+  if (isChampion && marginPct > 0 && product.adsStatus !== "ativo" && hasStock && !isLuckySale) {
     classifications.push("prioridade_ads");
   }
 
+  // Gap alto sozinho não é suficiente para bloquear CPC — campeões de giro já provaram demanda ao preço premium.
+  // Só bloquear quando gap alto se combina com baixo giro (produto não comprovado no mercado).
   if (
     !hasStock ||
-    hasHighMarketGap ||
     isLuckySale ||
-    (product.unidadesVendidas30d <= medianUnits && product.precoVenda > medianPrice && product.adsStatus !== "ativo")
+    (hasHighMarketGap && product.unidadesVendidas30d <= medianUnits) ||
+    (!hasHighMarketGap && product.unidadesVendidas30d <= medianUnits && product.precoVenda > medianPrice && product.adsStatus !== "ativo")
   ) {
     classifications.push("nao_priorizar_cpc");
   }

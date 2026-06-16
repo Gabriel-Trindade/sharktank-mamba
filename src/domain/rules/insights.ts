@@ -20,8 +20,8 @@ export const generateInsights = (
       id: "sales-drop",
       severity: "high",
       title: "Queda de vendas detectada",
-      description: "O faturamento dos últimos 30 dias está abaixo do período anterior.",
-      evidence: `${formatCurrency(scenario.account.vendas30d)} contra ${formatCurrency(scenario.account.vendasPeriodoAnterior)}.`,
+      description: "O faturamento atual está abaixo do patamar de referência registrado antes da queda — queda acumulada ao longo do período de assessoria.",
+      evidence: `Atual: ${formatCurrency(scenario.account.vendas30d)} / Referência: ${formatCurrency(scenario.account.vendasPeriodoAnterior)}.`,
     });
   }
 

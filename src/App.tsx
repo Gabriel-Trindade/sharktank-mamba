@@ -4,9 +4,7 @@ import { Card } from "./components/ui/Card";
 import { SectionHeader } from "./components/ui/SectionHeader";
 import { saveScenarioInputSchema } from "./domain/schemas";
 import type { AnalysisResult, SellerScenario } from "./domain/types";
-import { OverviewDashboard } from "./features/dashboard/OverviewDashboard";
-import { ProductCurveSection } from "./features/dashboard/ProductCurveSection";
-import { RecoveryPlanSection } from "./features/dashboard/RecoveryPlanSection";
+import { DiagnosticDashboard } from "./features/dashboard/DiagnosticDashboard";
 import { AccountMetricsForm } from "./features/inputs/AccountMetricsForm";
 import { AdsMetricsForm } from "./features/inputs/AdsMetricsForm";
 import { MarketForm } from "./features/inputs/MarketForm";
@@ -213,11 +211,7 @@ function App() {
 
         {activeSection === "diagnostico" ? (
           scenario && analysis ? (
-            <div className="section-stack">
-              <OverviewDashboard scenario={scenario} result={analysis} />
-              <ProductCurveSection products={analysis.products} />
-              <RecoveryPlanSection actions={analysis.recoveryPlan} />
-            </div>
+            <DiagnosticDashboard scenario={scenario} result={analysis} />
           ) : (
             <Card
               title="Diagnóstico ainda não gerado"

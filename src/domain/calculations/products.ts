@@ -96,19 +96,27 @@ const buildCurveASet = (products: ProductRow[], key: "gmv30d" | "unidadesVendida
 
 const buildProductReading = (classifications: ProductClassification[], marketGapRatio: number) => {
   if (classifications.includes("prioridade_ads")) {
-    return "Produto com giro e margem, mas sem Ads ativo.";
+    return "Campeão de giro com margem e Ads inativo — candidato ao próximo teste de campanha.";
   }
 
   if (classifications.includes("venda_por_sorte")) {
-    return "Venda concentrada em poucas unidades; validar recorrência antes de investir.";
+    return "Venda concentrada em poucas unidades; validar recorrência orgânica antes de investir em Ads.";
   }
 
   if (classifications.includes("nao_priorizar_cpc")) {
-    return "Ticket alto e baixo giro reduzem prioridade para compra de clique.";
+    return "Giro baixo para o preço premium praticado — otimizar título, imagens e prova social antes de Ads.";
+  }
+
+  if (classifications.includes("produto_isca")) {
+    return "Ticket abaixo da média do catálogo — bom candidato para atrair volume e novos compradores.";
+  }
+
+  if (classifications.includes("candidato_promocao")) {
+    return "Há espaço de desconto dentro da margem — testar oferta promocional pode melhorar o giro.";
   }
 
   if (marketGapRatio >= 2.5) {
-    return "Preço muito distante do mercado; revisar oferta antes de escalar.";
+    return "Preço acima da média do mercado nessa categoria — validar posicionamento premium antes de escalar.";
   }
 
   return "Produto elegível para acompanhamento no plano de recuperação.";

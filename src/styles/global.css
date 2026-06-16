@@ -455,6 +455,64 @@ a {
   height: 320px;
 }
 
+.pie-chart-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 196px;
+  gap: 12px;
+  height: 320px;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  overflow-y: auto;
+  padding: 2px 0;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.pie-legend-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.pie-legend-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.pie-legend-pct {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .pie-chart-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: 220px auto;
+    height: auto;
+  }
+}
+
 .compact-list {
   display: grid;
   gap: 10px;
