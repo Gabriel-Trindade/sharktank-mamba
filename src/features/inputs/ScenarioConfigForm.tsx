@@ -13,7 +13,10 @@ export const ScenarioConfigForm = ({ value, onChange }: ScenarioConfigFormProps)
   };
 
   return (
-    <Card title="Configuração do cenário" description="Use limites conservadores para score, TACOS e plano de recuperação.">
+    <Card
+      title="Configuração do cenário"
+      description="Meta, margem e TACOS para score e plano de recuperação. Os descontos vêm da seção de Promoções."
+    >
       <div className="form-grid three">
         <NumberInput
           label="Meta de faturamento"
@@ -32,18 +35,6 @@ export const ScenarioConfigForm = ({ value, onChange }: ScenarioConfigFormProps)
           label="TACOS máximo (%)"
           value={value.tacosMaximoPct}
           onValueChange={(next) => updateNumber("tacosMaximoPct", next)}
-          required
-        />
-        <NumberInput
-          label="Desconto máximo (%)"
-          value={value.descontoMaximoPct}
-          onValueChange={(next) => updateNumber("descontoMaximoPct", next)}
-          required
-        />
-        <NumberInput
-          label="Desconto atual (%)"
-          value={value.descontoAtualPct}
-          onValueChange={(next) => updateNumber("descontoAtualPct", next)}
           required
         />
         <label className="toggle-field">

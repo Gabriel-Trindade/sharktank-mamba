@@ -1,5 +1,6 @@
 import type { SaveScenarioInput } from "../services/fakeApi";
 import type { SellerScenario } from "../domain/types";
+import { isLiveGeckoCategory } from "../domain/market/categoryKey";
 
 export type AppSectionId =
   | "produtos"
@@ -21,8 +22,8 @@ export const appSections: AppSection[] = [
   { id: "conta", label: "Conta", description: "Informe vendas, pedidos e cancelamentos." },
   { id: "trafego", label: "Tráfego", description: "Separe a origem das vendas." },
   { id: "ads", label: "Ads", description: "Informe entrega, cliques e investimento." },
-  { id: "promocoes", label: "Promoções", description: "Defina desconto e resultado promocional." },
-  { id: "mercado", label: "Mercado", description: "Inclua benchmarks e limites do cenário." },
+  { id: "promocoes", label: "Promoções", description: "Defina desconto, resultado promocional e limites do cenário." },
+  { id: "mercado", label: "Mercado", description: "Busque o benchmark de mercado na Shopee." },
   { id: "diagnostico", label: "Diagnóstico", description: "Gere o plano de recuperação." },
 ];
 
@@ -88,3 +89,26 @@ export const scenarioToDraft = (scenario: SellerScenario): SaveScenarioInput => 
   market: scenario.market,
   config: scenario.config,
 });
+
+// Draft para apresentação: nas categorias que consultam a GeckoAPI ao vivo,
+// zera o lado do mercado (preço médio/min/máx e fonte) mantendo só os dados do
+// seller, para que sejam buscados ao vivo no pitch. As demais categorias ficam
+// com o benchmark estático (Joompulse) intacto, apenas para exibição.
+export const toPresentationDraft = (scenario: SellerScenario): SaveScenarioInput => {
+  const base = scenarioToDraft(scenario);
+
+  return {
+    ...base,
+    market: base.market.map((item) =>
+      isLiveGeckoCategory(item.categoria)
+        ? {
+            ...item,
+            precoMedioMercado: 0,
+            precoMinMercado: undefined,
+            precoMaxMercado: undefined,
+            fonte: "",
+          }
+        : item,
+    ),
+  };
+};

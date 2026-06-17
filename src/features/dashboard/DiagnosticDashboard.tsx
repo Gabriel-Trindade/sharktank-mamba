@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tabs, type TabItem } from "../../components/ui/Tabs";
 import type { AnalysisResult, SellerScenario } from "../../domain/types";
+import type { MarketBenchmarkFromGecko } from "../../domain/market/geckoTypes";
 import { AdsChannelsSection } from "./AdsChannelsSection";
 import { MarketSection } from "./MarketSection";
 import { OverviewDashboard } from "./OverviewDashboard";
@@ -20,9 +21,10 @@ const TABS: TabItem<DiagnosticTab>[] = [
 type DiagnosticDashboardProps = {
   scenario: SellerScenario;
   result: AnalysisResult;
+  geckoInsights?: Record<string, MarketBenchmarkFromGecko>;
 };
 
-export const DiagnosticDashboard = ({ scenario, result }: DiagnosticDashboardProps) => {
+export const DiagnosticDashboard = ({ scenario, result, geckoInsights }: DiagnosticDashboardProps) => {
   const [activeTab, setActiveTab] = useState<DiagnosticTab>("resumo");
 
   return (
@@ -30,7 +32,7 @@ export const DiagnosticDashboard = ({ scenario, result }: DiagnosticDashboardPro
       <Tabs items={TABS} value={activeTab} onChange={setActiveTab} />
       {activeTab === "resumo" && <OverviewDashboard scenario={scenario} result={result} />}
       {activeTab === "produtos" && <ProductCurveSection products={result.products} />}
-      {activeTab === "mercado" && <MarketSection market={result.market} />}
+      {activeTab === "mercado" && <MarketSection market={result.market} geckoInsights={geckoInsights} />}
       {activeTab === "ads" && <AdsChannelsSection scenario={scenario} result={result} />}
       {activeTab === "plano" && <RecoveryPlanSection actions={result.recoveryPlan} />}
     </div>

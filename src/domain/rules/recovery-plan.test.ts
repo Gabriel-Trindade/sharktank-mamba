@@ -23,10 +23,4 @@ describe("recovery plan", () => {
     expect(action?.evidence).toContain("Faltam");
     expect(action?.expectedImpact).toContain("por dia");
   });
-
-  it("recommends a liquidity bridge when market unit share is low", () => {
-    const result = analyzeScenario(demoScenario);
-
-    expect(result.recoveryPlan.some((action) => action.id === "fix-low-liquidity")).toBe(true);
-  });
 });

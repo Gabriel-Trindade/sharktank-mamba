@@ -1,13 +1,18 @@
 import { Plus, Trash2 } from "lucide-react";
+import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { NumberInput } from "../../components/ui/NumberInput";
 import type { MarketBenchmark } from "../../domain/types";
+import type { MarketBenchmarkFromGecko } from "../../domain/market/geckoTypes";
+import { isLiveGeckoCategory } from "../../domain/market/categoryKey";
+import { GeckoBenchmarkButton } from "./GeckoBenchmarkButton";
 
 type MarketFormProps = {
   value: MarketBenchmark[];
   onChange: (value: MarketBenchmark[]) => void;
+  onGeckoInsight?: (categoria: string, insight: MarketBenchmarkFromGecko) => void;
 };
 
 const emptyBenchmark = (): MarketBenchmark => ({
@@ -15,12 +20,10 @@ const emptyBenchmark = (): MarketBenchmark => ({
   palavraChave: "",
   precoMedioMercado: 0,
   precoMedioSeller: 0,
-  unidadesMesMercado: 0,
-  unidadesMesSeller: 0,
   fonte: "Manual",
 });
 
-export const MarketForm = ({ value, onChange }: MarketFormProps) => {
+export const MarketForm = ({ value, onChange, onGeckoInsight }: MarketFormProps) => {
   const update = (index: number, patch: Partial<MarketBenchmark>) => {
     onChange(value.map((item, currentIndex) => (currentIndex === index ? { ...item, ...patch } : item)));
   };
@@ -69,16 +72,6 @@ export const MarketForm = ({ value, onChange }: MarketFormProps) => {
                 onValueChange={(next) => update(index, { precoMedioSeller: next })}
                 required
               />
-              <NumberInput
-                label="Unidades mês mercado"
-                value={item.unidadesMesMercado ?? 0}
-                onValueChange={(next) => update(index, { unidadesMesMercado: next })}
-              />
-              <NumberInput
-                label="Unidades mês seller"
-                value={item.unidadesMesSeller ?? 0}
-                onValueChange={(next) => update(index, { unidadesMesSeller: next })}
-              />
               <Button
                 className="self-end"
                 variant="danger"
@@ -88,6 +81,18 @@ export const MarketForm = ({ value, onChange }: MarketFormProps) => {
                 Remover
               </Button>
             </div>
+            {isLiveGeckoCategory(item.categoria) ? (
+              <GeckoBenchmarkButton
+                keyword={item.palavraChave}
+                onApply={(patch) => update(index, patch)}
+                onInsight={(insight) => onGeckoInsight?.(item.categoria, insight)}
+              />
+            ) : (
+              <div className="gecko-benchmark">
+                <Badge tone="neutral">Fonte: {item.fonte || "Joompulse (estático)"}</Badge>
+                <span className="gecko-status-text muted">Benchmark estático para a apresentação.</span>
+              </div>
+            )}
           </div>
         ))}
       </div>

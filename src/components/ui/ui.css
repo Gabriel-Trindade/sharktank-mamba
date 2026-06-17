@@ -103,6 +103,51 @@
   gap: 8px;
 }
 
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+  outline: none;
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 4px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.5;
+  vertical-align: middle;
+  font-style: normal;
+  flex-shrink: 0;
+}
+
+.tooltip-bubble {
+  position: fixed;
+  z-index: 9999;
+  width: 230px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+  white-space: normal;
+  /* top/left set via inline style from JS; translate centers and lifts */
+  transform: translateX(-50%) translateY(-100%);
+}
+
 .metric-card {
   min-height: 132px;
   display: grid;

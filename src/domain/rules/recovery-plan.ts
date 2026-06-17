@@ -72,21 +72,7 @@ export const generateRecoveryPlan = (
     });
   }
 
-  // — Faixa 3: capturar volume e usar as alavancas de oferta aprovadas —
-  const lowLiquidity = result.market.find((item) => item.lowLiquidity);
-  if (lowLiquidity) {
-    actions.push({
-      id: "fix-low-liquidity",
-      priority: 3,
-      title: "Criar ponte de liquidez com produtos de entrada",
-      problem: "O seller gira poucas unidades frente ao mercado, mesmo tendo produto premium.",
-      evidence: `${lowLiquidity.categoria} representa ${formatPercent(lowLiquidity.unitSharePct)} das unidades do benchmark.`,
-      action: "Adicionar ou destacar itens de entrada e kits abaixo do ticket médio para capturar volume sem desligar o mix premium.",
-      expectedImpact: "Aumentar pedidos e sinais de venda recorrente antes de ampliar CPC.",
-      complexity: "media",
-    });
-  }
-
+  // — Faixa 3: usar as alavancas de oferta aprovadas —
   if (isPromotionUnderused(scenario.promotion, scenario.config)) {
     actions.push({
       id: "use-promotion-headroom",

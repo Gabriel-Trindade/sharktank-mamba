@@ -73,9 +73,7 @@ export const marketBenchmarkSchema = z.object({
   precoMedioMercado: numberSchema,
   precoMinMercado: optionalNumberSchema,
   precoMaxMercado: optionalNumberSchema,
-  unidadesMesMercado: optionalNumberSchema,
   precoMedioSeller: numberSchema,
-  unidadesMesSeller: optionalNumberSchema,
   fonte: z.coerce.string().trim().optional(),
 });
 

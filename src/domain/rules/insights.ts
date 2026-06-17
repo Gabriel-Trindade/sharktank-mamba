@@ -109,17 +109,6 @@ export const generateInsights = (
     });
   }
 
-  const lowLiquidity = partialResult.market.find((item) => item.lowLiquidity);
-  if (lowLiquidity) {
-    insights.push({
-      id: "low-market-liquidity",
-      severity: "high",
-      title: "Baixa liquidez frente ao mercado",
-      description: "O seller participa de uma fração pequena do giro mensal estimado da categoria.",
-      evidence: `${lowLiquidity.categoria}: ${formatPercent(lowLiquidity.unitSharePct)} das unidades do benchmark.`,
-    });
-  }
-
   const priorityProducts = partialResult.products.filter((item) =>
     item.classifications.includes("prioridade_ads"),
   );

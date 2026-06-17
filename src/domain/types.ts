@@ -74,9 +74,7 @@ export type MarketBenchmark = {
   precoMedioMercado: number;
   precoMinMercado?: number;
   precoMaxMercado?: number;
-  unidadesMesMercado?: number;
   precoMedioSeller: number;
-  unidadesMesSeller?: number;
   fonte?: string;
 };
 
@@ -142,10 +140,6 @@ export type MarketAnalysis = {
   gapRatio: number;
   gapPct: number;
   highGap: boolean;
-  unidadesMesMercado?: number;
-  unidadesMesSeller?: number;
-  unitSharePct: number;
-  lowLiquidity: boolean;
   reading: string;
 };
 

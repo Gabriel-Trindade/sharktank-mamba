@@ -52,8 +52,12 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
               <strong>{formatInteger(result.overview.dailyOrdersNeededToTarget)}</strong>
             </div>
             <div className="target-stat">
-              <span>Verba Ads restante</span>
-              <strong>{formatCurrency(result.overview.adsBudgetRemaining)}</strong>
+              <span>Saldo Ads (meta)</span>
+              <strong>
+                {result.overview.adsBudgetRemaining >= 0
+                  ? formatCurrency(result.overview.adsBudgetRemaining)
+                  : `−${formatCurrency(Math.abs(result.overview.adsBudgetRemaining))}`}
+              </strong>
             </div>
             <div className="target-stat">
               <span>Margem estimada</span>
@@ -80,18 +84,21 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
             value={formatInteger(result.overview.buyers)}
             detail={`Conversão ${formatPercent(result.overview.visitToBuyerConversion)}`}
             tone={result.overview.visitToBuyerConversion < 5 ? "danger" : "success"}
+            tooltip="De cada 100 pessoas que visitaram sua loja, quantas fizeram uma compra. Conversão de 3% significa que 97 foram embora sem comprar — abaixo de 5% acende o alerta."
           />
           <MetricCard
             label="Dependência Ads"
             value={formatPercent(result.overview.adDependencyPct)}
             detail="Vendas Shopee Ads / total"
             tone={result.overview.adDependencyPct >= 60 ? "danger" : "info"}
+            tooltip="Quanto das suas vendas vem de anúncios pagos. 70% significa que se você pausar os anúncios hoje, quase todas as vendas somem. O saudável é ter uma base de vendas orgânicas também, sem depender de pagar por cada clique."
           />
           <MetricCard
             label="TACOS usado"
             value={formatPercent(result.overview.tacosUsedPct)}
             detail={`Limite ${formatPercent(scenario.config.tacosMaximoPct)}`}
             tone={result.overview.tacosUsedPct > scenario.config.tacosMaximoPct ? "danger" : "success"}
+            tooltip={`De cada R$100 que você vendeu, quanto foi gasto em anúncios. Ex: TACOS de 16,6% = você gastou R$16,60 para gerar R$100 em vendas. Seu limite configurado é ${scenario.config.tacosMaximoPct}% — acima disso, o anúncio está corroendo sua margem.`}
           />
         </div>
       </section>

@@ -146,19 +146,17 @@ describe("product and market analysis", () => {
     expect(result.find((product) => product.sku === "D")?.isCurveAUnits).toBe(true);
   });
 
-  it("detects low market liquidity from unit share", () => {
+  it("flags high price gap from market benchmark", () => {
     const [market] = analyzeMarket([
       {
         categoria: "Joias",
         precoMedioMercado: 60,
         precoMedioSeller: 160,
-        unidadesMesMercado: 1000,
-        unidadesMesSeller: 50,
       },
     ]);
 
     expect(market.highGap).toBe(true);
-    expect(market.lowLiquidity).toBe(true);
-    expect(market.unitSharePct).toBe(5);
+    expect(market.gapRatio).toBe(2.67);
+    expect(market.reading).toMatch(/acima do mercado/i);
   });
 });

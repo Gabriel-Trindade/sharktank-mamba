@@ -54,7 +54,7 @@ export const calculateOverview = (
     dailyRevenueNeededToTarget: safeDivide(revenueGapToTarget, 30),
     dailyOrdersNeededToTarget: ordersNeededToTarget > 0 ? Math.ceil(safeDivide(ordersNeededToTarget, 30)) : 0,
     availableAdsBudget,
-    adsBudgetRemaining: Math.max(availableAdsBudget - ads.investimentoAds, 0),
+    adsBudgetRemaining: availableAdsBudget - ads.investimentoAds,
     contributionMarginValue: account.vendas30d * (config.margemContribuicaoPct / 100),
     sales30d: account.vendas30d,
     orders30d: account.pedidos30d,

@@ -4,6 +4,8 @@ import { Card } from "./components/ui/Card";
 import { SectionHeader } from "./components/ui/SectionHeader";
 import { saveScenarioInputSchema } from "./domain/schemas";
 import type { AnalysisResult, SellerScenario } from "./domain/types";
+import type { MarketBenchmarkFromGecko } from "./domain/market/geckoTypes";
+import { normalizeCategoryKey } from "./domain/market/categoryKey";
 import { DiagnosticDashboard } from "./features/dashboard/DiagnosticDashboard";
 import { AccountMetricsForm } from "./features/inputs/AccountMetricsForm";
 import { AdsMetricsForm } from "./features/inputs/AdsMetricsForm";
@@ -18,6 +20,7 @@ import {
   appSections,
   createEmptyScenarioDraft,
   scenarioToDraft,
+  toPresentationDraft,
   type AppSectionId,
 } from "./app/app-state";
 
@@ -42,11 +45,11 @@ const sectionCopy: Record<AppSectionId, { title: string; description: string }> 
   },
   promocoes: {
     title: "Promoções",
-    description: "Configure descontos e resultado promocional para encontrar espaço de alavanca.",
+    description: "Configure descontos, resultado promocional e os limites do cenário (meta, margem, TACOS).",
   },
   mercado: {
     title: "Mercado",
-    description: "Adicione benchmarks por categoria para medir gap competitivo.",
+    description: "Confira os dados do seller por categoria e busque o benchmark na Shopee via GeckoAPI.",
   },
   diagnostico: {
     title: "Diagnóstico",
@@ -60,6 +63,7 @@ function App() {
   const [draft, setDraft] = useState<SaveScenarioInput>(() => createEmptyScenarioDraft());
   const [scenario, setScenario] = useState<SellerScenario | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [geckoInsights, setGeckoInsights] = useState<Record<string, MarketBenchmarkFromGecko>>({});
   const [isBusy, setIsBusy] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
 
@@ -90,11 +94,14 @@ function App() {
 
     try {
       const demo = await fakeApi.loadDemoScenario();
-      const result = await fakeApi.runAnalysis(demo.id);
+      // Apresentação: carrega o cenário mas começa em Produtos, sem gerar o
+      // diagnóstico ainda — o apresentador percorre as abas uma a uma e busca
+      // o benchmark de mercado ao vivo antes de gerar o diagnóstico.
       setScenario(demo);
-      setDraft(scenarioToDraft(demo));
-      setAnalysis(result);
-      setActiveSection("diagnostico");
+      setDraft(toPresentationDraft(demo));
+      setAnalysis(null);
+      setGeckoInsights({});
+      setActiveSection("produtos");
     } catch (error) {
       setMessages([readError(error)]);
     } finally {
@@ -110,6 +117,7 @@ function App() {
       await fakeApi.clearAll();
       setScenario(null);
       setAnalysis(null);
+      setGeckoInsights({});
       setDraft(createEmptyScenarioDraft());
       setActiveSection("produtos");
     } catch (error) {
@@ -128,7 +136,16 @@ function App() {
         throw new Error("Carregue ao menos um produto antes de gerar o diagnóstico.");
       }
 
-      const parsed = saveScenarioInputSchema.parse(draft);
+      // Descontos têm fonte única na seção de Promoções; o cenário reaproveita.
+      const draftToSave: SaveScenarioInput = {
+        ...draft,
+        config: {
+          ...draft.config,
+          descontoAtualPct: draft.promotion.descontoAtualPct,
+          descontoMaximoPct: draft.promotion.descontoMaximoPct,
+        },
+      };
+      const parsed = saveScenarioInputSchema.parse(draftToSave);
       const savedScenario = scenario
         ? await fakeApi.updateScenario(scenario.id, parsed)
         : await fakeApi.saveScenario(parsed);
@@ -196,22 +213,28 @@ function App() {
         ) : null}
 
         {activeSection === "promocoes" ? (
-          <PromotionForm
-            value={draft.promotion}
-            onChange={(promotion) => setDraft((current) => ({ ...current, promotion }))}
-          />
-        ) : null}
-
-        {activeSection === "mercado" ? (
           <div className="section-stack">
-            <MarketForm value={draft.market} onChange={(market) => setDraft((current) => ({ ...current, market }))} />
+            <PromotionForm
+              value={draft.promotion}
+              onChange={(promotion) => setDraft((current) => ({ ...current, promotion }))}
+            />
             <ScenarioConfigForm value={draft.config} onChange={(config) => setDraft((current) => ({ ...current, config }))} />
           </div>
         ) : null}
 
+        {activeSection === "mercado" ? (
+          <MarketForm
+            value={draft.market}
+            onChange={(market) => setDraft((current) => ({ ...current, market }))}
+            onGeckoInsight={(categoria, insight) =>
+              setGeckoInsights((current) => ({ ...current, [normalizeCategoryKey(categoria)]: insight }))
+            }
+          />
+        ) : null}
+
         {activeSection === "diagnostico" ? (
           scenario && analysis ? (
-            <DiagnosticDashboard scenario={scenario} result={analysis} />
+            <DiagnosticDashboard scenario={scenario} result={analysis} geckoInsights={geckoInsights} />
           ) : (
             <Card
               title="Diagnóstico ainda não gerado"
@@ -283,11 +306,11 @@ const getCompletedSections = (draft: SaveScenarioInput, analysis: AnalysisResult
     completed.push("ads");
   }
 
-  if (draft.promotion.nome.trim() && draft.promotion.vendasPromocao > 0) {
+  if (draft.promotion.nome.trim() && draft.promotion.vendasPromocao > 0 && draft.config.metaFaturamento > 0) {
     completed.push("promocoes");
   }
 
-  if (draft.market.length > 0 && draft.config.metaFaturamento > 0) {
+  if (draft.market.length > 0) {
     completed.push("mercado");
   }
 

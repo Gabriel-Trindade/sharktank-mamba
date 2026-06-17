@@ -12,14 +12,34 @@ export const AdsChannelsSection = ({ scenario, result }: AdsChannelsSectionProps
   <div className="section-stack">
     <div className="dashboard-grid">
       <MetricCard label="Investimento" value={formatCurrency(scenario.ads.investimentoAds)} detail="Shopee Ads" />
-      <MetricCard label="CTR" value={formatPercent(result.overview.ctr)} detail="Cliques / impressões" />
-      <MetricCard label="Clique -> pedido" value={formatPercent(result.overview.clickToOrderConversion)} detail="Pedidos Ads / cliques" />
-      <MetricCard label="CPC estimado" value={formatCurrency(result.overview.cpc)} detail="Investimento / cliques" />
       <MetricCard
-        label="Verba até TACOS"
-        value={formatCurrency(result.overview.adsBudgetRemaining)}
-        detail={`Teto ${formatCurrency(result.overview.availableAdsBudget)}`}
-        tone={result.overview.adsBudgetRemaining > 0 ? "info" : "danger"}
+        label="CTR"
+        value={formatPercent(result.overview.ctr)}
+        detail="Cliques / impressões"
+        tooltip="De cada 100 vezes que seu anúncio apareceu na Shopee, quantas vezes alguém clicou. CTR mais alto = anúncio mais atrativo. Muito baixo pode indicar foto ou título fraco."
+      />
+      <MetricCard
+        label="Clique → pedido"
+        value={formatPercent(result.overview.clickToOrderConversion)}
+        detail="Pedidos Ads / cliques"
+        tooltip="De cada 100 pessoas que clicaram no anúncio, quantas fizeram um pedido. Número baixo pode indicar problema na página do produto: foto, preço, descrição ou avaliações insuficientes."
+      />
+      <MetricCard
+        label="CPC estimado"
+        value={formatCurrency(result.overview.cpc)}
+        detail="Investimento / cliques"
+        tooltip="Custo por Clique — quanto você pagou em média por cada pessoa que clicou no seu anúncio. Quanto menor, mais eficiente é o seu Ads."
+      />
+      <MetricCard
+        label="Saldo Ads vs. meta"
+        value={
+          result.overview.adsBudgetRemaining >= 0
+            ? formatCurrency(result.overview.adsBudgetRemaining)
+            : `${formatCurrency(Math.abs(result.overview.adsBudgetRemaining))} acima do teto`
+        }
+        detail={`Teto: ${formatCurrency(result.overview.availableAdsBudget)} (${scenario.config.tacosMaximoPct}% da meta de faturamento)`}
+        tone={result.overview.adsBudgetRemaining >= 0 ? "info" : "danger"}
+        tooltip={`Quanto ainda sobra para investir em anúncios sem estourar o TACOS de ${scenario.config.tacosMaximoPct}%, considerando sua meta de faturamento. Quando aparece "acima do teto", você já gastou mais em anúncios do que o planejado para chegar na meta.`}
       />
     </div>
 
