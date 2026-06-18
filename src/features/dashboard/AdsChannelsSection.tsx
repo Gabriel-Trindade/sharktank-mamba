@@ -54,7 +54,7 @@ export const AdsChannelsSection = ({ scenario, result }: AdsChannelsSectionProps
         </div>
         <div className="funnel-step">
           <span className="funnel-label">Entrega</span>
-          <strong className="funnel-value">{scenario.ads.impressoes.toLocaleString("pt-BR")}</strong>
+          <strong className="funnel-value">{scenario.ads.impressoes.toLocaleString("pt-BR")} impressões</strong>
         </div>
         <div className="funnel-step">
           <span className="funnel-label">Conversão</span>
