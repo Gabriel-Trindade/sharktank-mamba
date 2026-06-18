@@ -10,7 +10,7 @@ import type {
 import { buildGeckoShopeePlpMock } from "../mocks/geckoShopeePlpMock";
 
 const ENABLED = import.meta.env.VITE_GECKO_API_ENABLED === "true";
-const API_KEY = (import.meta.env.VITE_GECKO_API_KEY ?? "").trim();
+const API_KEY = (import.meta.env.VITE_GECKO_API_KEY ?? import.meta.env.VITE_GECKO_API_KEY_FALLBACK ?? "").trim();
 const BASE_URL = (import.meta.env.VITE_GECKO_API_BASE_URL ?? "https://api.geckoapi.com.br").replace(/\/$/, "");
 const MOCK_MODE = import.meta.env.VITE_GECKO_API_MOCK_MODE === "true";
 
