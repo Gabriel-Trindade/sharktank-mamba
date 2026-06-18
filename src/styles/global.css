@@ -628,6 +628,55 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+/* Legenda das duas escalas do plano (prioridade vs esforço). */
+.recovery-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0 0 4px;
+  color: var(--color-muted);
+  font-size: 12.5px;
+}
+
+.recovery-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recovery-legend em {
+  font-style: italic;
+}
+
+.recovery-legend-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Filtro rotulado para deixar claro que filtra por ESFORÇO, não por prioridade. */
+.recovery-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recovery-filter-label {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .recovery-list {
   list-style: none;
   margin: 0;
@@ -695,6 +744,15 @@ a {
   text-align: center;
 }
 
+.recovery-rank-eyebrow {
+  color: var(--color-muted);
+  font-size: 8.5px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .recovery-rank-number {
   font-size: 30px;
   font-weight: 700;
@@ -745,6 +803,12 @@ a {
 .recovery-toggle {
   min-width: 104px;
   justify-content: center;
+}
+
+/* Tag de esforço: ícone + texto, espaçados, e sem quebrar linha. */
+.recovery-complexity {
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .recovery-details {

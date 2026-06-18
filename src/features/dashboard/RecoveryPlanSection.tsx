@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useMemo, useState } from "react";
+import { Wrench } from "lucide-react";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import type { RecoveryAction } from "../../domain/types";
@@ -16,26 +17,29 @@ const complexityTone = {
   alta: "danger",
 } as const;
 
+// Esforço de execução (quão trabalhosa é a ação). Rótulo no masculino para concordar com "Esforço"
+// e NÃO se confundir com a escala de prioridade ("Médio" da prioridade vs "Médio" do esforço).
 const complexityLabel = {
-  baixa: "Baixa",
-  media: "Média",
-  alta: "Alta",
+  baixa: "Baixo",
+  media: "Médio",
+  alta: "Alto",
 } as const;
 
 // Faixa de urgência da ação (1 = parar o sangramento agora ... 5 = otimização fina).
+// "Importante" (e não "Médio") no nível 3 para evitar colisão com o esforço "Médio".
 const urgencyLabel: Record<RecoveryAction["priority"], string> = {
   1: "Crítico",
   2: "Urgente",
-  3: "Médio",
+  3: "Importante",
   4: "Planejado",
   5: "Otimização",
 };
 
 const filterOptions: { value: ComplexityFilter; label: string }[] = [
   { value: "all", label: "Todos" },
-  { value: "baixa", label: "Baixa" },
-  { value: "media", label: "Média" },
-  { value: "alta", label: "Alta" },
+  { value: "baixa", label: "Baixo" },
+  { value: "media", label: "Médio" },
+  { value: "alta", label: "Alto" },
 ];
 
 export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
@@ -60,17 +64,34 @@ export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
         <p>Ações priorizadas por regras, da mais urgente para a menos urgente</p>
       </div>
 
-      <div className="tabs">
-        {filterOptions.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={clsx("tab-button", complexityFilter === opt.value && "is-active")}
-            onClick={() => setComplexityFilter(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
+      {/* Legenda: deixa claro que são DUAS escalas diferentes (prioridade ≠ esforço). */}
+      <p className="recovery-legend">
+        <span>
+          <span className="recovery-legend-key">01 · Crítico</span>
+          prioridade — <em>quando fazer</em>
+        </span>
+        <span>
+          <span className="recovery-legend-key">
+            <Wrench size={12} aria-hidden /> Esforço
+          </span>
+          complexidade — <em>quão trabalhoso é executar</em>
+        </span>
+      </p>
+
+      <div className="recovery-filter">
+        <span className="recovery-filter-label">Filtrar por esforço</span>
+        <div className="tabs">
+          {filterOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={clsx("tab-button", complexityFilter === opt.value && "is-active")}
+              onClick={() => setComplexityFilter(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filteredActions.length > 0 ? (
@@ -81,6 +102,7 @@ export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
             return (
               <li className={clsx("recovery-action", `recovery-action-p${action.priority}`)} key={action.id}>
                 <div className="recovery-rank">
+                  <span className="recovery-rank-eyebrow">Prioridade</span>
                   <span className="recovery-rank-number">{String(rank).padStart(2, "0")}</span>
                   <span className="recovery-rank-tier">{urgencyLabel[action.priority]}</span>
                 </div>
@@ -88,8 +110,9 @@ export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
                   <div className="recovery-top">
                     <h3>{action.title}</h3>
                     <div className="recovery-top-meta">
-                      <Badge tone={complexityTone[action.complexity]}>
-                        {complexityLabel[action.complexity]}
+                      <Badge tone={complexityTone[action.complexity]} className="recovery-complexity">
+                        <Wrench size={12} aria-hidden />
+                        Esforço {complexityLabel[action.complexity]}
                       </Badge>
                       <Button
                         className="recovery-toggle"
@@ -133,7 +156,7 @@ export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
         <p className="muted">
           {complexityFilter === "all"
             ? "Sem ações prioritárias para os dados atuais."
-            : "Nenhuma ação com essa complexidade."}
+            : "Nenhuma ação com esse esforço."}
         </p>
       )}
     </section>
