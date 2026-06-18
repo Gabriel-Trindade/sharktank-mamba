@@ -43,7 +43,10 @@ export const AdsChannelsSection = ({ scenario, result }: AdsChannelsSectionProps
       />
     </div>
 
-    <Card title="Fluxo de Ads" description="Leitura do caminho entre investimento, entrega, conversão e receita.">
+    <Card
+      title="Fluxo de Ads"
+      description="Leitura do caminho entre investimento, entrega, conversão e receita. A Receita Ads vem do painel de Ads (janela de atribuição mais ampla), por isso costuma ser maior que a Dependência Ads da Visão geral, que usa atribuição direta."
+    >
       <div className="funnel">
         <div className="funnel-step">
           <span className="funnel-label">Investimento</span>
@@ -58,7 +61,7 @@ export const AdsChannelsSection = ({ scenario, result }: AdsChannelsSectionProps
           <strong className="funnel-value">{scenario.ads.pedidosAds.toLocaleString("pt-BR")} pedidos</strong>
         </div>
         <div className="funnel-step">
-          <span className="funnel-label">Receita Ads</span>
+          <span className="funnel-label">Receita Ads (painel)</span>
           <strong className="funnel-value">{formatCurrency(scenario.ads.vendasAds)}</strong>
         </div>
       </div>

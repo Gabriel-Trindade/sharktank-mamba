@@ -90,7 +90,7 @@ export const MarketForm = ({ value, onChange, onGeckoInsight }: MarketFormProps)
             ) : (
               <div className="gecko-benchmark">
                 <Badge tone="neutral">Fonte: {item.fonte || "Joompulse (estático)"}</Badge>
-                <span className="gecko-status-text muted">Benchmark estático para a apresentação.</span>
+                {/* <span className="gecko-status-text muted">Benchmark estático para a apresentação.</span> */}
               </div>
             )}
           </div>

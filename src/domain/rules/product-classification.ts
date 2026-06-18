@@ -9,6 +9,20 @@ export type ProductClassificationContext = {
   config: ScenarioConfig;
 };
 
+// statusAnuncio é o estado do ANÚNCIO (listing) na vitrine — diferente de adsStatus (campanha paga).
+// Um anúncio pausado/inativo não vende nem organicamente nem com Ads, então tratamos com prioridade.
+// Conservador por padrão: só consideramos inativo quando o texto diz claramente que está.
+const PAUSED_LISTING_PATTERN =
+  /(pausad|inativ|bloquead|suspens|exclu[ií]|deletad|removid|reprovad|violaç|indispon|encerrad|desativ)/i;
+
+export const isAnuncioInativo = (statusAnuncio?: string): boolean => {
+  if (!statusAnuncio) {
+    return false;
+  }
+
+  return PAUSED_LISTING_PATTERN.test(statusAnuncio.trim());
+};
+
 export const classifyProduct = (
   product: ProductRow,
   context: ProductClassificationContext,
@@ -25,6 +39,12 @@ export const classifyProduct = (
   const isLuckySale = product.unidadesVendidas30d <= 1 && (product.gmv30d >= medianGmv || product.precoVenda > medianPrice);
   const hasHighMarketGap = marketGapRatio >= 2.5;
   const hasPromotionHeadroom = context.config.descontoMaximoPct > context.config.descontoAtualPct;
+  const anuncioInativo = isAnuncioInativo(product.statusAnuncio);
+
+  // Anúncio pausado/inativo é o bloqueio número 1: vem primeiro para aparecer no badge do produto.
+  if (anuncioInativo) {
+    classifications.push("anuncio_inativo");
+  }
 
   if (isChampion) {
     classifications.push("campeao_de_giro");
@@ -34,8 +54,17 @@ export const classifyProduct = (
     classifications.push("venda_por_sorte");
   }
 
-  if (isChampion && marginPct > 0 && product.adsStatus !== "ativo" && hasStock && !isLuckySale) {
+  // Candidato a Ads: campeão de giro com margem, estoque, sem ser venda por sorte nem anúncio pausado.
+  // Só AFIRMAMOS "ative" quando o Ads é sabidamente inativo. Quando o status é desconhecido (sem a
+  // coluna na planilha), não inventamos — marcamos "verificar" para o seller confirmar no painel de Ads.
+  const isAdsCandidate = isChampion && marginPct > 0 && hasStock && !isLuckySale && !anuncioInativo;
+  const adsKnownInactive = product.adsStatus === "inativo";
+  const adsUnknown = product.adsStatus === undefined || product.adsStatus === "desconhecido";
+
+  if (isAdsCandidate && adsKnownInactive) {
     classifications.push("prioridade_ads");
+  } else if (isAdsCandidate && adsUnknown) {
+    classifications.push("verificar_ads");
   }
 
   // Gap alto sozinho não é suficiente para bloquear CPC — campeões de giro já provaram demanda ao preço premium.

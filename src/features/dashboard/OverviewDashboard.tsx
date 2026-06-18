@@ -26,8 +26,9 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
           <h2>Caminho até {formatCurrency(scenario.config.metaFaturamento)}</h2>
           <strong>{formatCurrency(result.overview.revenueGapToTarget)} faltando</strong>
           <p>
-            O ritmo necessário é de {formatCurrency(result.overview.dailyRevenueNeededToTarget)} por dia,
-            equivalente a {formatInteger(result.overview.ordersNeededToTarget)} pedidos no ticket atual.
+            São {formatInteger(result.overview.ordersNeededToTarget)} pedidos no ticket atual para fechar o gap —
+            um ritmo de {formatCurrency(result.overview.dailyRevenueNeededToTarget)} por dia
+            (~{formatInteger(result.overview.dailyOrdersNeededToTarget)} pedidos/dia).
           </p>
         </div>
 
@@ -76,7 +77,13 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
           <MetricCard
             label="Vendas 30d"
             value={formatCurrency(result.overview.sales30d)}
-            detail={`Queda ${formatPercent(result.overview.salesDropPct)} vs. período de referência`}
+            detail={
+              result.overview.salesGrowthPct > 0
+                ? `Alta ${formatPercent(result.overview.salesGrowthPct)} vs. período de referência`
+                : result.overview.salesDropPct > 0
+                  ? `Queda ${formatPercent(result.overview.salesDropPct)} vs. período de referência`
+                  : "Estável vs. período de referência"
+            }
             tone={result.overview.salesDropPct > 0 ? "danger" : "success"}
           />
           <MetricCard
@@ -89,9 +96,9 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
           <MetricCard
             label="Dependência Ads"
             value={formatPercent(result.overview.adDependencyPct)}
-            detail="Vendas Shopee Ads / total"
+            detail="Atribuição direta (tráfego)"
             tone={result.overview.adDependencyPct >= 60 ? "danger" : "info"}
-            tooltip="Quanto das suas vendas vem de anúncios pagos. 70% significa que se você pausar os anúncios hoje, quase todas as vendas somem. O saudável é ter uma base de vendas orgânicas também, sem depender de pagar por cada clique."
+            tooltip="Quanto das suas vendas vem de anúncios pagos, pela atribuição direta das fontes de tráfego. Tende a ser MENOR que a 'Receita Ads' do painel, que usa uma janela de atribuição mais ampla. 70% significa que se você pausar os anúncios hoje, quase todas as vendas somem. O saudável é ter uma base de vendas orgânicas também, sem depender de pagar por cada clique."
           />
           <MetricCard
             label="TACOS usado"
@@ -100,6 +107,15 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
             tone={result.overview.tacosUsedPct > scenario.config.tacosMaximoPct ? "danger" : "success"}
             tooltip={`De cada R$100 que você vendeu, quanto foi gasto em anúncios. Ex: TACOS de 16,6% = você gastou R$16,60 para gerar R$100 em vendas. Seu limite configurado é ${scenario.config.tacosMaximoPct}% — acima disso, o anúncio está corroendo sua margem.`}
           />
+          {scenario.account.vendasSemDesconto !== undefined && (
+            <MetricCard
+              label="Descontos Shopee"
+              value={formatPercent(result.overview.shopeeDiscountSharePct)}
+              detail={`${formatCurrency(result.overview.shopeeDiscountValue)} do faturamento bruto`}
+              tone={result.overview.shopeeDiscountSharePct >= 15 ? "danger" : "info"}
+              tooltip="Quanto do seu faturamento bruto veio de descontos subsidiados pela Shopee (bruto menos as vendas sem desconto da Shopee). Quanto maior, mais o seu resultado depende dessas campanhas da plataforma para acontecer."
+            />
+          )}
         </div>
       </section>
 

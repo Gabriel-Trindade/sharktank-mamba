@@ -57,7 +57,7 @@ const productTemplateRows = [
 const instructions = [
   ["Como usar", "Preencha a aba produtos e mantenha os nomes das colunas."],
   ["Período", "Use dados dos últimos 30 dias para unidades, GMV e estoque atual."],
-  ["Ads", "Use ativo, inativo ou desconhecido na coluna ads_status."],
+  ["Ads", "Coluna ads_status é opcional. Use ativo ou inativo se souber; se deixar em branco, o produto entra como 'a verificar' (sem afirmar que há campanha)."],
   ["Opcional", `As colunas opcionais são: ${optionalColumns.join(", ")}.`],
 ];
 

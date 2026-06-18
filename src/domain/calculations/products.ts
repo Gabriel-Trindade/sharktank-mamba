@@ -84,7 +84,9 @@ const buildCurveASet = (products: ProductRow[], key: "gmv30d" | "unidadesVendida
   [...products]
     .sort((a, b) => b[key] - a[key])
     .forEach((product) => {
-      if (accumulated / total < 0.8) {
+      // Um produto sem contribuição (0 unidades ou 0 GMV) NÃO concentra parte alguma do total —
+      // não pode ser marcado como Curva A só por estar antes da linha dos 80%.
+      if (product[key] > 0 && accumulated / total < 0.8) {
         curveSkus.add(product.sku);
       }
 
@@ -95,8 +97,16 @@ const buildCurveASet = (products: ProductRow[], key: "gmv30d" | "unidadesVendida
 };
 
 const buildProductReading = (classifications: ProductClassification[], marketGapRatio: number) => {
+  if (classifications.includes("anuncio_inativo")) {
+    return "Anúncio pausado/inativo — o produto não vende enquanto não for reativado na vitrine.";
+  }
+
   if (classifications.includes("prioridade_ads")) {
     return "Campeão de giro com margem e Ads inativo — candidato ao próximo teste de campanha.";
+  }
+
+  if (classifications.includes("verificar_ads")) {
+    return "Campeão de giro com margem. Confirme no painel de Ads se já há campanha ativa; se não houver, é candidato a teste controlado.";
   }
 
   if (classifications.includes("venda_por_sorte")) {
@@ -123,8 +133,16 @@ const buildProductReading = (classifications: ProductClassification[], marketGap
 };
 
 const buildProductAction = (classifications: ProductClassification[]) => {
+  if (classifications.includes("anuncio_inativo")) {
+    return "Reativar o anúncio na vitrine antes de qualquer ajuste de preço ou Ads.";
+  }
+
   if (classifications.includes("prioridade_ads")) {
     return "Ativar campanha controlada e medir ROAS por 7 dias.";
+  }
+
+  if (classifications.includes("verificar_ads")) {
+    return "Conferir no painel de Ads se já existe campanha; se não houver, testar campanha controlada.";
   }
 
   if (classifications.includes("candidato_promocao")) {

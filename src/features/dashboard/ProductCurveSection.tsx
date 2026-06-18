@@ -23,7 +23,7 @@ const filterDescription: Record<ProductFilter, string> = {
   all: "Todos os produtos ordenados por score de oportunidade.",
   curva_a: "Produtos que concentram ~80% do GMV ou do giro em unidades — a base real da operação.",
   prioridade_ads:
-    "Campeões de giro com margem positiva e Ads inativo. Candidatos ao próximo teste de campanha controlada.",
+    "Campeões de giro com margem positiva e Ads inativo ou a verificar. Candidatos ao próximo teste de campanha controlada — confirme o status de Ads quando não informado.",
   atencao:
     "Produtos que precisam de ajuste orgânico (giro, preço, prova social) antes de receber verba paga.",
 };
@@ -52,8 +52,10 @@ type ProductCurveSectionProps = {
 };
 
 const classificationLabel: Record<ProductClassification, string> = {
+  anuncio_inativo: "Anúncio Inativo",
   campeao_de_giro: "Campeão de Giro",
   prioridade_ads: "Prioridade Ads",
+  verificar_ads: "Verificar Ads",
   venda_por_sorte: "Venda por Sorte",
   candidato_promocao: "Promoção",
   produto_isca: "Produto Isca",
@@ -62,8 +64,8 @@ const classificationLabel: Record<ProductClassification, string> = {
 
 const classificationTone = (classification: ProductClassification): "success" | "warning" | "danger" | "info" => {
   if (classification === "prioridade_ads" || classification === "campeao_de_giro") return "success";
-  if (classification === "venda_por_sorte") return "danger";
-  if (classification === "nao_priorizar_cpc") return "warning";
+  if (classification === "venda_por_sorte" || classification === "anuncio_inativo") return "danger";
+  if (classification === "nao_priorizar_cpc" || classification === "verificar_ads") return "warning";
   return "info";
 };
 
@@ -90,10 +92,15 @@ export const ProductCurveSection = ({ products }: ProductCurveSectionProps) => {
       case "curva_a":
         return sorted.filter((p) => p.isCurveAUnits || p.isCurveAGmv);
       case "prioridade_ads":
-        return sorted.filter((p) => p.classifications.includes("prioridade_ads"));
+        return sorted.filter(
+          (p) =>
+            p.classifications.includes("prioridade_ads") ||
+            p.classifications.includes("verificar_ads"),
+        );
       case "atencao":
         return sorted.filter(
           (p) =>
+            p.classifications.includes("anuncio_inativo") ||
             p.classifications.includes("nao_priorizar_cpc") ||
             p.classifications.includes("venda_por_sorte"),
         );
@@ -128,12 +135,12 @@ export const ProductCurveSection = ({ products }: ProductCurveSectionProps) => {
       render: (row) => (
         <div className="badge-row">
           {row.isCurveAUnits ? (
-            <Badge tone="success" title="Representa ~80% das unidades vendidas do período">
+            <Badge tone="success" title="Faz parte do grupo que concentra ~80%+ das unidades vendidas do período">
               Curva A Giro
             </Badge>
           ) : null}
           {row.isCurveAGmv ? (
-            <Badge tone="info" title="Representa ~80% do faturamento do período">
+            <Badge tone="info" title="Faz parte do grupo que concentra ~80%+ do faturamento do período">
               Curva A GMV
             </Badge>
           ) : null}

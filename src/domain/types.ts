@@ -1,8 +1,10 @@
 export type AdsStatus = "ativo" | "inativo" | "desconhecido";
 
 export type ProductClassification =
+  | "anuncio_inativo"
   | "campeao_de_giro"
   | "prioridade_ads"
+  | "verificar_ads"
   | "venda_por_sorte"
   | "candidato_promocao"
   | "produto_isca"
@@ -137,6 +139,11 @@ export type MarketAnalysis = {
   palavraChave?: string;
   precoMedioMercado: number;
   precoMedioSeller: number;
+  precoMinMercado?: number;
+  precoMaxMercado?: number;
+  // Posição do preço do seller frente à faixa observada (min–max) do mercado.
+  // `null` quando não há faixa informada para comparar.
+  sellerPriceVsBand: "abaixo" | "dentro" | "acima" | null;
   gapRatio: number;
   gapPct: number;
   highGap: boolean;
@@ -146,10 +153,13 @@ export type MarketAnalysis = {
 export type AnalysisResult = {
   overview: {
     salesDropPct: number;
+    salesGrowthPct: number;
     ordersDropPct: number;
     cancellationGrowthPct: number;
     averageTicket: number;
     visitToBuyerConversion: number;
+    shopeeDiscountValue: number;
+    shopeeDiscountSharePct: number;
     adDependencyPct: number;
     roas: number;
     ctr: number;

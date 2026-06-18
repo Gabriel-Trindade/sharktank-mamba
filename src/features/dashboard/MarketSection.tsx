@@ -34,6 +34,21 @@ const columns: DataTableColumn<MarketAnalysis>[] = [
       <div>
         <div className="badge-row">
           <Badge tone={row.highGap ? "danger" : "success"}>{row.highGap ? "Gap alto" : "Competitivo"}</Badge>
+          {row.sellerPriceVsBand === "acima" ? (
+            <Badge tone="danger" title="Preço do seller acima do teto observado no mercado">
+              Acima da faixa
+            </Badge>
+          ) : null}
+          {row.sellerPriceVsBand === "abaixo" ? (
+            <Badge tone="warning" title="Preço do seller abaixo do piso observado no mercado">
+              Abaixo da faixa
+            </Badge>
+          ) : null}
+          {row.sellerPriceVsBand === "dentro" ? (
+            <Badge tone="info" title="Preço do seller dentro da faixa observada (mín–máx)">
+              Na faixa
+            </Badge>
+          ) : null}
         </div>
         <div className="muted">{row.reading}</div>
       </div>

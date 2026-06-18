@@ -40,8 +40,19 @@ export const calculateOpportunityScore = (product: ProductRow, context: ScoreCon
   const giroScore = clamp(safeDivide(product.unidadesVendidas30d, maxUnits) * 100);
   const margemScore = clamp(safeDivide(marginPct, 40) * 100);
   const gmvScore = clamp(safeDivide(product.gmv30d, maxGmv) * 100);
-  const adsOpportunityScore =
-    hasNoStock ? 25 : product.adsStatus === "ativo" ? 45 : product.unidadesVendidas30d >= 3 && marginPct > 0 ? 100 : 55;
+  // Status de Ads DESCONHECIDO não pode valer o mesmo que "inativo comprovado": premiar a ausência
+  // de dado inflaria o score. Só o "inativo" explícito (com demanda provada) recebe a nota máxima de
+  // oportunidade; desconhecido fica neutro.
+  const provenDemand = product.unidadesVendidas30d >= 3 && marginPct > 0;
+  const adsOpportunityScore = hasNoStock
+    ? 25
+    : product.adsStatus === "ativo"
+      ? 45
+      : product.adsStatus === "inativo"
+        ? provenDemand
+          ? 100
+          : 55
+        : 55; // desconhecido: neutro
   const marketFitScore = marketRatio <= 0 ? 60 : marketRatio <= 1.1 ? 100 : marketRatio <= 1.6 ? 75 : marketRatio <= 2.5 ? 45 : 10;
   const riskPenalty =
     (isLuckySale ? 25 : 0) +

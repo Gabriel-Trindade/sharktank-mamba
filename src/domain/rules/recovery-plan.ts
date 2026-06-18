@@ -17,6 +17,25 @@ export const generateRecoveryPlan = (
   // e o sort estável no fim preserva esta ordem dentro de cada faixa.
 
   // — Faixa 1: parar o sangramento e ancorar a meta —
+  const inactiveListings = result.products.filter((product) =>
+    product.classifications.includes("anuncio_inativo"),
+  );
+  if (inactiveListings.length > 0) {
+    actions.push({
+      id: "reactivate-listings",
+      priority: 1,
+      title: "Reativar anúncios pausados ou inativos",
+      problem: "Anúncios fora da vitrine não vendem nem organicamente nem com Ads — é receita perdida na origem.",
+      evidence: `${inactiveListings.length} anúncio(s) inativo(s): ${inactiveListings
+        .slice(0, 3)
+        .map((product) => product.produto)
+        .join(", ")}.`,
+      action: "Reativar/republicar os anúncios afetados e corrigir o motivo (estoque, política, cadastro) antes de qualquer otimização.",
+      expectedImpact: "Recolocar SKUs na vitrine e recuperar a base de vendas antes de investir em demanda.",
+      complexity: "baixa",
+    });
+  }
+
   if (hasSalesDrop(scenario.account)) {
     actions.push({
       id: "recover-sales-base",
@@ -144,10 +163,31 @@ export const generateRecoveryPlan = (
     });
   }
 
+  const verifyAdsProduct = result.products.find((item) =>
+    item.classifications.includes("verificar_ads"),
+  );
+  if (verifyAdsProduct) {
+    actions.push({
+      id: "verify-ads-status",
+      priority: 5,
+      title: "Confirmar status de Ads dos campeões",
+      problem: "Há campeões de giro com margem cujo status de Ads não foi informado na planilha.",
+      evidence: `${verifyAdsProduct.produto} tem score ${verifyAdsProduct.score} e status de Ads não informado.`,
+      action: "Cruzar a lista com a Central de Anúncios da Shopee e marcar ativo/inativo por SKU na coluna ads_status.",
+      expectedImpact: "Destravar recomendação precisa: ativar onde falta campanha e reduzir verba onde há dependência.",
+      complexity: "baixa",
+    });
+  }
+
   return actions.sort((a, b) => a.priority - b.priority);
 };
 
 const getExecutionProducts = (products: ProductAnalysis[]) =>
   products
-    .filter((product) => !product.classifications.includes("nao_priorizar_cpc") && product.estoque !== 0)
+    .filter(
+      (product) =>
+        !product.classifications.includes("nao_priorizar_cpc") &&
+        !product.classifications.includes("anuncio_inativo") &&
+        product.estoque !== 0,
+    )
     .slice(0, 5);

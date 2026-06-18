@@ -109,6 +109,19 @@ export const generateInsights = (
     });
   }
 
+  const inactiveListings = partialResult.products.filter((item) =>
+    item.classifications.includes("anuncio_inativo"),
+  );
+  if (inactiveListings.length > 0) {
+    insights.push({
+      id: "inactive-listings",
+      severity: "high",
+      title: "Anúncios pausados ou inativos",
+      description: "Produtos com anúncio fora da vitrine não vendem nem organicamente nem com Ads.",
+      evidence: `${inactiveListings.length} anúncio(s) inativo(s): ${inactiveListings.slice(0, 3).map((item) => item.produto).join(", ")}.`,
+    });
+  }
+
   const priorityProducts = partialResult.products.filter((item) =>
     item.classifications.includes("prioridade_ads"),
   );
@@ -119,6 +132,19 @@ export const generateInsights = (
       title: "Produtos prontos para teste de Ads",
       description: "Há itens com giro e margem que ainda não usam Ads ativo.",
       evidence: priorityProducts.slice(0, 3).map((item) => item.produto).join(", "),
+    });
+  }
+
+  const verifyAdsProducts = partialResult.products.filter((item) =>
+    item.classifications.includes("verificar_ads"),
+  );
+  if (verifyAdsProducts.length > 0) {
+    insights.push({
+      id: "verify-ads-products",
+      severity: "medium",
+      title: "Campeões a confirmar no painel de Ads",
+      description: "Há campeões de giro com margem cujo status de Ads não foi informado. Confirme se já existe campanha antes de decidir ativar ou reduzir verba.",
+      evidence: verifyAdsProducts.slice(0, 3).map((item) => item.produto).join(", "),
     });
   }
 
@@ -192,6 +218,52 @@ const generateDataConsistencyInsights = (scenario: SellerScenario): Insight[] =>
       title: "Compradores acima do esperado",
       description: "Compradores não deveriam superar visitantes nem pedidos no mesmo período.",
       evidence: `${formatInteger(scenario.account.compradores)} compradores, ${formatInteger(scenario.account.visitantes)} visitantes e ${formatInteger(scenario.account.pedidos30d)} pedidos.`,
+    });
+  }
+
+  // Cada pedido de Ads carrega ao menos 1 item — itens vendidos abaixo de pedidos é dado impossível.
+  if (scenario.ads.pedidosAds > 0 && scenario.ads.itensVendidosAds < scenario.ads.pedidosAds) {
+    insights.push({
+      id: "ads-items-invalid",
+      severity: "high",
+      title: "Itens vendidos por Ads abaixo dos pedidos",
+      description: "Cada pedido tem ao menos um item; itens vendidos não podem ser menores que pedidos.",
+      evidence: `${formatInteger(scenario.ads.itensVendidosAds)} itens para ${formatInteger(scenario.ads.pedidosAds)} pedidos de Ads.`,
+    });
+  }
+
+  // Mesma lógica para a promoção: unidades ≥ pedidos e compradores ≤ pedidos.
+  if (scenario.promotion.pedidosPromocao > 0 && scenario.promotion.unidadesVendidasPromocao < scenario.promotion.pedidosPromocao) {
+    insights.push({
+      id: "promotion-units-invalid",
+      severity: "medium",
+      title: "Unidades da promoção abaixo dos pedidos",
+      description: "Unidades vendidas na promoção não podem ser menores que o número de pedidos.",
+      evidence: `${formatInteger(scenario.promotion.unidadesVendidasPromocao)} unidades para ${formatInteger(scenario.promotion.pedidosPromocao)} pedidos na promoção.`,
+    });
+  }
+
+  if (scenario.promotion.pedidosPromocao > 0 && scenario.promotion.compradoresPromocao > scenario.promotion.pedidosPromocao) {
+    insights.push({
+      id: "promotion-buyers-invalid",
+      severity: "medium",
+      title: "Compradores da promoção acima dos pedidos",
+      description: "Compradores da promoção não deveriam superar o número de pedidos no mesmo período.",
+      evidence: `${formatInteger(scenario.promotion.compradoresPromocao)} compradores para ${formatInteger(scenario.promotion.pedidosPromocao)} pedidos na promoção.`,
+    });
+  }
+
+  // Vendas sem os descontos da Shopee não podem superar o faturamento bruto (vendas30d).
+  if (
+    scenario.account.vendasSemDesconto !== undefined &&
+    scenario.account.vendasSemDesconto > scenario.account.vendas30d
+  ) {
+    insights.push({
+      id: "net-sales-above-gross",
+      severity: "medium",
+      title: "Vendas sem desconto acima do bruto",
+      description: "O faturamento sem os descontos da Shopee não deveria superar o faturamento bruto.",
+      evidence: `${formatCurrency(scenario.account.vendasSemDesconto)} sem desconto contra ${formatCurrency(scenario.account.vendas30d)} bruto.`,
     });
   }
 

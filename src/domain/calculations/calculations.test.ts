@@ -3,6 +3,7 @@ import { calculateAdDependency, calculateClickToOrderConversion, calculateCpc, c
 import { calculateOverview, hasHighCancellation, hasLowConversion, hasOrdersDrop, hasSalesDrop } from "./account";
 import { analyzeMarket, calculateMarketGapRatio, isHighMarketGap } from "./market";
 import { analyzeProducts } from "./products";
+import { calculateOpportunityScore } from "./score";
 import type { AccountMetrics, AdsMetrics, ProductRow, ScenarioConfig, TrafficMetrics } from "../types";
 
 const account: AccountMetrics = {
@@ -84,8 +85,65 @@ describe("account calculations", () => {
     expect(overview.revenueGapToTarget).toBe(400);
     expect(overview.ordersNeededToTarget).toBe(40);
     expect(overview.availableAdsBudget).toBe(144);
-    expect(overview.adsBudgetRemaining).toBe(0);
+    // 144 de teto − 500 investidos = −356 (estourou o teto). A asserção anterior dizia 0.
+    expect(overview.adsBudgetRemaining).toBe(-356);
+    // Pedidos/dia derivam do ritmo de receita/dia (13,33) sobre o ticket (10) → ~1, não ceil(40/30)=2.
+    expect(overview.dailyRevenueNeededToTarget).toBeCloseTo(13.33, 2);
+    expect(overview.dailyOrdersNeededToTarget).toBe(1);
     expect(Object.values(overview).every(Number.isFinite)).toBe(true);
+  });
+
+  it("keeps R$/dia e pedidos/dia coerentes (mesma base de ritmo)", () => {
+    // Caso real do cenário demo: meta 30k, vendas 9.467,73 em 85 pedidos.
+    const pacingAccount: AccountMetrics = { ...account, vendas30d: 9467.73, pedidos30d: 85 };
+    const pacingConfig: ScenarioConfig = { ...config, metaFaturamento: 30000 };
+    const overview = calculateOverview(pacingAccount, traffic, ads, pacingConfig);
+
+    const ticket = 9467.73 / 85;
+    expect(overview.ordersNeededToTarget).toBe(185); // total para fechar o gap
+    expect(overview.dailyRevenueNeededToTarget).toBeCloseTo(684.41, 2);
+    // Antes: Math.ceil(185 / 30) = 7, divergindo do ritmo exibido (≈6,1 pedidos/dia).
+    expect(overview.dailyOrdersNeededToTarget).toBe(6);
+    // Coerência: pedidos/dia ≈ (receita/dia ÷ ticket), dentro de 1 pedido de arredondamento.
+    expect(
+      Math.abs(overview.dailyOrdersNeededToTarget - overview.dailyRevenueNeededToTarget / ticket),
+    ).toBeLessThan(1);
+  });
+
+  it("usa base única (vendas reais) para o TACOS realizado, sem cair para a meta", () => {
+    const tacosAccount: AccountMetrics = { ...account, vendas30d: 9467.73 };
+    const tacosAds: AdsMetrics = { ...ads, investimentoAds: 1572 };
+    const tacosConfig: ScenarioConfig = { ...config, metaFaturamento: 30000 };
+    const overview = calculateOverview(tacosAccount, traffic, tacosAds, tacosConfig);
+
+    // Base = vendas reais: 1572 / 9467,73 ≈ 16,6%.
+    expect(overview.tacosUsedPct).toBeCloseTo((1572 / 9467.73) * 100, 4);
+    // E NÃO a meta: 1572 / 30000 = 5,24% seria a base errada.
+    expect(overview.tacosUsedPct).not.toBeCloseTo((1572 / 30000) * 100, 4);
+  });
+
+  it("não troca silenciosamente o TACOS para a meta quando não há vendas", () => {
+    const noSalesAccount: AccountMetrics = { ...account, vendas30d: 0 };
+    const overview = calculateOverview(noSalesAccount, traffic, { ...ads, investimentoAds: 500 }, config);
+
+    // Sem vendas, o TACOS realizado é indefinido → 0 (e não 500/meta como na versão anterior).
+    expect(overview.tacosUsedPct).toBe(0);
+  });
+
+  it("mede o desconto da Shopee como bruto menos vendas sem desconto", () => {
+    const discountAccount: AccountMetrics = { ...account, vendas30d: 1000, vendasSemDesconto: 900 };
+    const overview = calculateOverview(discountAccount, traffic, ads, config);
+
+    expect(overview.shopeeDiscountValue).toBe(100);
+    expect(overview.shopeeDiscountSharePct).toBeCloseTo(10, 4);
+  });
+
+  it("nunca reporta desconto Shopee negativo quando o sem-desconto supera o bruto", () => {
+    const inconsistentAccount: AccountMetrics = { ...account, vendas30d: 1000, vendasSemDesconto: 1100 };
+    const overview = calculateOverview(inconsistentAccount, traffic, ads, config);
+
+    expect(overview.shopeeDiscountValue).toBe(0);
+    expect(overview.shopeeDiscountSharePct).toBe(0);
   });
 });
 
@@ -158,5 +216,80 @@ describe("product and market analysis", () => {
     expect(market.highGap).toBe(true);
     expect(market.gapRatio).toBe(2.67);
     expect(market.reading).toMatch(/acima do mercado/i);
+  });
+
+  it("inclui o item que cruza 80% mas exclui a cauda e produtos sem contribuição", () => {
+    const base = { categoria: "Joias", custo: 10, precoVenda: 100, estoque: 5 } as const;
+    const curveProducts: ProductRow[] = [
+      { ...base, sku: "P1", produto: "Top", unidadesVendidas30d: 50, gmv30d: 5000 },
+      { ...base, sku: "P2", produto: "Segundo", unidadesVendidas30d: 25, gmv30d: 2500 },
+      { ...base, sku: "P3", produto: "Cruza 80%", unidadesVendidas30d: 20, gmv30d: 2000 },
+      { ...base, sku: "P4", produto: "Cauda", unidadesVendidas30d: 5, gmv30d: 500 },
+      { ...base, sku: "P5", produto: "Sem giro", unidadesVendidas30d: 0, gmv30d: 0 },
+    ];
+    const result = analyzeProducts(curveProducts, [], account, config);
+    const byId = (sku: string) => result.find((product) => product.sku === sku);
+
+    // GMV acumulado: 5000+2500 = 75% (< 80%), então P3 entra ao cruzar para 95%; P4 (cauda) fica fora.
+    expect(byId("P1")?.isCurveAGmv).toBe(true);
+    expect(byId("P2")?.isCurveAGmv).toBe(true);
+    expect(byId("P3")?.isCurveAGmv).toBe(true);
+    expect(byId("P4")?.isCurveAGmv).toBe(false);
+    // Produto sem contribuição (0 giro / 0 GMV) nunca é Curva A.
+    expect(byId("P5")?.isCurveAGmv).toBe(false);
+    expect(byId("P5")?.isCurveAUnits).toBe(false);
+  });
+});
+
+describe("market price band (min–max)", () => {
+  it("posiciona o preço do seller frente à faixa observada do mercado", () => {
+    const [acima, abaixo, dentro, semFaixa] = analyzeMarket([
+      { categoria: "Acima", precoMedioMercado: 100, precoMinMercado: 50, precoMaxMercado: 150, precoMedioSeller: 200 },
+      { categoria: "Abaixo", precoMedioMercado: 100, precoMinMercado: 50, precoMaxMercado: 150, precoMedioSeller: 30 },
+      { categoria: "Dentro", precoMedioMercado: 100, precoMinMercado: 50, precoMaxMercado: 150, precoMedioSeller: 120 },
+      { categoria: "SemFaixa", precoMedioMercado: 100, precoMedioSeller: 120 },
+    ]);
+
+    expect(acima.sellerPriceVsBand).toBe("acima");
+    expect(acima.reading).toMatch(/teto observado/i);
+    expect(abaixo.sellerPriceVsBand).toBe("abaixo");
+    expect(abaixo.reading).toMatch(/piso/i);
+    expect(dentro.sellerPriceVsBand).toBe("dentro");
+    expect(semFaixa.sellerPriceVsBand).toBeNull();
+  });
+
+  it("ignora faixa inválida (min > max)", () => {
+    const [row] = analyzeMarket([
+      { categoria: "Invalida", precoMedioMercado: 100, precoMinMercado: 150, precoMaxMercado: 50, precoMedioSeller: 80 },
+    ]);
+
+    expect(row.sellerPriceVsBand).toBeNull();
+  });
+});
+
+describe("ads opportunity score with unknown status", () => {
+  const championBase: ProductRow = {
+    sku: "X",
+    produto: "Campeão",
+    categoria: "Cat",
+    custo: 40,
+    precoVenda: 100,
+    unidadesVendidas30d: 20,
+    gmv30d: 2000,
+    estoque: 10,
+  };
+
+  it("does not reward a missing ads status as if it were a proven inactive opportunity", () => {
+    const inactive = calculateOpportunityScore(
+      { ...championBase, adsStatus: "inativo" },
+      { products: [championBase], market: [] },
+    );
+    const unknown = calculateOpportunityScore(
+      { ...championBase, adsStatus: "desconhecido" },
+      { products: [championBase], market: [] },
+    );
+
+    // Inativo comprovado vale mais que desconhecido (que fica neutro).
+    expect(inactive).toBeGreaterThan(unknown);
   });
 });

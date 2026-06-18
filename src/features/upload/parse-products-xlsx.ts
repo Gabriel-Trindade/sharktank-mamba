@@ -20,11 +20,19 @@ const requiredColumns = [
   "preco_venda",
   "unidades_vendidas_30d",
   "gmv_30d",
-  "estoque",
-  "ads_status",
 ];
 
-const optionalColumns = ["status_logistica", "status_anuncio", "url_produto", "observacao"];
+// estoque e ads_status são OPCIONAIS: exports comuns ("Top Produtos Curva A") não trazem essas colunas.
+// Sem ads_status, o produto entra como "desconhecido" e o diagnóstico usa o modo verificar (sem afirmar
+// que o Ads está ligado/desligado). Sem estoque, assume-se que há estoque (sem penalidade no score).
+const optionalColumns = [
+  "estoque",
+  "ads_status",
+  "status_logistica",
+  "status_anuncio",
+  "url_produto",
+  "observacao",
+];
 
 const columnMap = {
   sku: "sku",

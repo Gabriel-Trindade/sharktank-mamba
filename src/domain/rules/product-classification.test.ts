@@ -62,6 +62,32 @@ describe("product classification", () => {
     });
     expect(classifications).toContain("campeao_de_giro");
     expect(classifications).toContain("prioridade_ads");
+    expect(classifications).not.toContain("verificar_ads");
+  });
+
+  it("marks champions with UNKNOWN ads status as 'verificar_ads' (not prioridade_ads)", () => {
+    const unknownAds: ProductRow = { ...products[0], adsStatus: undefined };
+    const classifications = classifyProduct(unknownAds, {
+      products: [unknownAds, ...products.slice(1)],
+      market: [{ categoria: "Beleza", precoMedioMercado: 75, precoMedioSeller: 80 }],
+      averageTicket: 70,
+      config,
+    });
+
+    expect(classifications).toContain("verificar_ads");
+    expect(classifications).not.toContain("prioridade_ads");
+  });
+
+  it("treats explicit 'desconhecido' the same as a missing ads status", () => {
+    const unknownAds: ProductRow = { ...products[0], adsStatus: "desconhecido" };
+    const classifications = classifyProduct(unknownAds, {
+      products: [unknownAds, ...products.slice(1)],
+      market: [{ categoria: "Beleza", precoMedioMercado: 75, precoMedioSeller: 80 }],
+      averageTicket: 70,
+      config,
+    });
+
+    expect(classifications).toContain("verificar_ads");
   });
 
   it("marks lucky sale and no CPC recommendation", () => {
@@ -86,6 +112,31 @@ describe("product classification", () => {
 
     expect(classifications).toContain("prioridade_ads");
     expect(classifications).not.toContain("nao_priorizar_cpc");
+  });
+
+  it("flags an inactive listing and blocks Ads priority even for a champion", () => {
+    const pausedChampion: ProductRow = { ...products[0], statusAnuncio: "Pausado" };
+    const classifications = classifyProduct(pausedChampion, {
+      products: [pausedChampion, ...products.slice(1)],
+      market: [{ categoria: "Beleza", precoMedioMercado: 75, precoMedioSeller: 80 }],
+      averageTicket: 70,
+      config,
+    });
+
+    expect(classifications).toContain("anuncio_inativo");
+    expect(classifications).not.toContain("prioridade_ads");
+  });
+
+  it("treats an unrecognized status as active (no false positive)", () => {
+    const active: ProductRow = { ...products[0], statusAnuncio: "Ativo" };
+    const classifications = classifyProduct(active, {
+      products: [active, ...products.slice(1)],
+      market: [{ categoria: "Beleza", precoMedioMercado: 75, precoMedioSeller: 80 }],
+      averageTicket: 70,
+      config,
+    });
+
+    expect(classifications).not.toContain("anuncio_inativo");
   });
 
   it("blocks CPC priority when market gap is high on a low-rotation product", () => {

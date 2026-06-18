@@ -29,12 +29,24 @@ export const calculateOverview = (
   const ctr = ads.ctr ?? percentage(ads.cliques, ads.impressoes);
   const cpc = safeDivide(ads.investimentoAds, ads.cliques);
   const averageTicket = calculateAverageTicket(account);
+  // vendas30d é o faturamento BRUTO; vendasSemDesconto exclui os descontos subsidiados pela Shopee.
+  // A diferença é o valor desses descontos, e a participação mostra quanto do bruto depende deles.
+  const netOfShopeeDiscount = account.vendasSemDesconto ?? account.vendas30d;
+  const shopeeDiscountValue = Math.max(account.vendas30d - netOfShopeeDiscount, 0);
+  const shopeeDiscountSharePct = percentage(shopeeDiscountValue, account.vendas30d);
   const revenueGapToTarget = Math.max(config.metaFaturamento - account.vendas30d, 0);
   const ordersNeededToTarget = averageTicket > 0 ? Math.ceil(revenueGapToTarget / averageTicket) : 0;
+  const dailyRevenueNeededToTarget = safeDivide(revenueGapToTarget, 30);
+  // Pedidos/dia derivam do MESMO ritmo de receita/dia e do ticket — assim "R$/dia" e
+  // "pedidos/dia" exibidos lado a lado contam a mesma história (são uma taxa média, por isso
+  // arredondam em vez de usar Math.ceil sobre o total do período).
+  const dailyOrdersNeededToTarget =
+    averageTicket > 0 ? Math.round(safeDivide(dailyRevenueNeededToTarget, averageTicket)) : 0;
   const availableAdsBudget = config.metaFaturamento * (config.tacosMaximoPct / 100);
 
   return {
     salesDropPct: percentageDrop(account.vendas30d, account.vendasPeriodoAnterior),
+    salesGrowthPct: percentageGrowth(account.vendas30d, account.vendasPeriodoAnterior),
     ordersDropPct: percentageDrop(account.pedidos30d, account.pedidosPeriodoAnterior),
     cancellationGrowthPct: percentageGrowth(
       account.cancelamentos30d,
@@ -42,17 +54,22 @@ export const calculateOverview = (
     ),
     averageTicket,
     visitToBuyerConversion: calculateVisitToBuyerConversion(account),
+    shopeeDiscountValue,
+    shopeeDiscountSharePct,
     adDependencyPct: percentage(traffic.vendasShopeeAds, traffic.vendasTotais),
     roas,
     ctr,
     cpc,
     clickToOrderConversion: percentage(ads.pedidosAds, ads.cliques),
-    tacosUsedPct: percentage(ads.investimentoAds, account.vendas30d || config.metaFaturamento),
+    // TACOS realizado tem base ÚNICA e estável: o investimento sobre as vendas reais do período.
+    // (Não cai para a meta quando as vendas zeram — isso trocaria silenciosamente a definição da
+    // métrica. O teto orientado à meta vive separado em availableAdsBudget/adsBudgetRemaining.)
+    tacosUsedPct: percentage(ads.investimentoAds, account.vendas30d),
     targetProgressPct: percentage(account.vendas30d, config.metaFaturamento),
     revenueGapToTarget,
     ordersNeededToTarget,
-    dailyRevenueNeededToTarget: safeDivide(revenueGapToTarget, 30),
-    dailyOrdersNeededToTarget: ordersNeededToTarget > 0 ? Math.ceil(safeDivide(ordersNeededToTarget, 30)) : 0,
+    dailyRevenueNeededToTarget,
+    dailyOrdersNeededToTarget,
     availableAdsBudget,
     adsBudgetRemaining: availableAdsBudget - ads.investimentoAds,
     contributionMarginValue: account.vendas30d * (config.margemContribuicaoPct / 100),
