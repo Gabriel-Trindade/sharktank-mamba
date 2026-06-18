@@ -14,9 +14,15 @@ export const OverviewDashboard = ({ scenario, result }: OverviewDashboardProps) 
   const [showAllInsights, setShowAllInsights] = useState(false);
   const targetProgress = Math.min(100, Math.max(0, result.overview.targetProgressPct));
 
-  const highInsights = result.insights.filter((i) => i.severity === "high");
-  const otherCount = result.insights.length - highInsights.length;
-  const visibleInsights = showAllInsights ? result.insights : highInsights;
+  // Ordena da prioridade mais alta para a mais baixa (high → medium → low).
+  // O sort é estável, então insights de mesma severidade mantêm a ordem em que foram gerados.
+  const severityRank = { high: 0, medium: 1, low: 2 } as const;
+  const sortedInsights = [...result.insights].sort(
+    (a, b) => severityRank[a.severity] - severityRank[b.severity],
+  );
+  const highInsights = sortedInsights.filter((i) => i.severity === "high");
+  const otherCount = sortedInsights.length - highInsights.length;
+  const visibleInsights = showAllInsights ? sortedInsights : highInsights;
 
   return (
     <div className="section-stack">

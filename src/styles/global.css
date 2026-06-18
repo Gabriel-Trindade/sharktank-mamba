@@ -719,15 +719,32 @@ a {
 
 .recovery-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
 .recovery-top h3 {
   margin: 0;
+  flex: 1;
+  min-width: 0;
   color: var(--color-text);
   font-size: 17px;
+}
+
+/* Tag de complexidade + botão sempre juntos e ancorados à direita, centralizados com o título. */
+.recovery-top-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Largura fixa do toggle para os badges alinharem em coluna entre os cards
+   (independente de "Ver detalhes" vs "Ver menos"). */
+.recovery-toggle {
+  min-width: 104px;
+  justify-content: center;
 }
 
 .recovery-details {

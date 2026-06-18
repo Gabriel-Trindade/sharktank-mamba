@@ -87,17 +87,20 @@ export const RecoveryPlanSection = ({ actions }: RecoveryPlanSectionProps) => {
                 <div className="recovery-content">
                   <div className="recovery-top">
                     <h3>{action.title}</h3>
-                    <Badge tone={complexityTone[action.complexity]}>
-                      {complexityLabel[action.complexity]}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      aria-expanded={isExpanded}
-                      onClick={() => setExpandedId(isExpanded ? null : action.id)}
-                    >
-                      {isExpanded ? "Ver menos" : "Ver detalhes"}
-                    </Button>
+                    <div className="recovery-top-meta">
+                      <Badge tone={complexityTone[action.complexity]}>
+                        {complexityLabel[action.complexity]}
+                      </Badge>
+                      <Button
+                        className="recovery-toggle"
+                        size="sm"
+                        variant="ghost"
+                        aria-expanded={isExpanded}
+                        onClick={() => setExpandedId(isExpanded ? null : action.id)}
+                      >
+                        {isExpanded ? "Ver menos" : "Ver detalhes"}
+                      </Button>
+                    </div>
                   </div>
                   <dl className="recovery-details">
                     <div>
